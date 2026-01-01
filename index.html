@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Universal Pulse | 2026</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <style>
+        :root { --gold: #ffcc00; --cyan: #00f2ff; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #020205; overflow: hidden; font-family: 'Segoe UI', sans-serif; }
+        
+        #canvas-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; perspective: 1000px; }
+        
+        .ui-main {
+            position: absolute; z-index: 100; width: 100%; height: 100%;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            pointer-events: none; color: white;
+        }
+
+        /* High-End Search Interface */
+        .search-box {
+            pointer-events: auto; background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.2); border-radius: 50px;
+            padding: 10px 25px; backdrop-filter: blur(10px);
+            margin-top: 30px; transition: 0.3s; width: 250px;
+        }
+        .search-box:focus-within { width: 350px; border-color: var(--cyan); box-shadow: 0 0 20px rgba(0,242,255,0.3); }
+        .search-box input {
+            background: transparent; border: none; color: white; width: 100%;
+            outline: none; text-align: center; letter-spacing: 2px;
+        }
+
+        .lang-particle {
+            position: absolute; will-change: transform; color: white;
+            font-weight: 300; pointer-events: none; white-space: nowrap;
+            text-shadow: 0 0 15px rgba(255,255,255,0.3);
+        }
+
+        /* The Pulse Core */
+        .core {
+            position: absolute; width: 10px; height: 10px; background: white;
+            border-radius: 50%; box-shadow: 0 0 100px 20px white;
+            animation: pulse 4s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.5); opacity: 1; filter: blur(2px); }
+            100% { transform: scale(1); opacity: 0.5; }
+        }
+
+        .cursor-trail {
+            position: fixed; width: 8px; height: 8px; background: var(--cyan);
+            border-radius: 50%; pointer-events: none; z-index: 999;
+            box-shadow: 0 0 15px var(--cyan);
+        }
+    </style>
+</head>
+<body>
+
+    <div id="canvas-container">
+        <div class="core" style="top: 50%; left: 50%; transform: translate(-50%, -50%);"></div>
+    </div>
+
+    <div class="ui-main">
+        <h1 id="title" style="letter-spacing: 20px; font-weight: 200; margin-bottom: 0;">2026</h1>
+        <p style="opacity: 0.5; letter-spacing: 5px;">TIME IS A RADIANT CIRCLE</p>
+        
+        <div class="search-box">
+            <input type="text" id="langSearch" placeholder="SEARCH A LANGUAGE..." oninput="highlightLang(this.value)">
+        </div>
+    </div>
+
+    <script>
+        const data = [
+            {l: "HAPPY NEW YEAR", c: "EN"}, {l: "FELIZ AÑO NUEVO", c: "ES"},
+            {l: "BONNE ANNÉE", c: "FR"}, {l: "明けましておめでとう", c: "JP"},
+            {l: "새해 복 많이 받으세요", c: "KR"}, {l: "新年快乐", c: "CN"},
+            {l: "С НОВЫМ ГОДОМ", c: "RU"}, {l: "NAV VARSH KI SHUBHKAMNA", c: "IN"},
+            {l: "SAWADDEE PEE MAI", c: "TH"}, {l: "YENİ YILINIZ KUTLU OLSUN", c: "TR"}
+        ];
+
+        // 1. Physics-Based Cursor Trail
+        const dots = [];
+        for(let i=0; i<12; i++) {
+            const d = document.createElement('div');
+            d.className = 'cursor-trail';
+            document.body.appendChild(d);
+            dots.push({el: d, x: 0, y: 0});
+        }
+
+        window.addEventListener('mousemove', e => {
+            gsap.to(dots[0], {x: e.clientX, y: e.clientY, duration: 0.1});
+            for(let i=1; i<dots.length; i++) {
+                gsap.to(dots[i], {
+                    x: dots[i-1].x, 
+                    y: dots[i-1].y, 
+                    duration: 0.1, 
+                    delay: i * 0.02,
+                    ease: "power2.out"
+                });
+            }
+        });
+
+        function updateDots() {
+            dots.forEach(d => {
+                d.el.style.transform = `translate(${d.x - 4}px, ${d.y - 4}px)`;
+            });
+            requestAnimationFrame(updateDots);
+        }
+        updateDots();
+
+        // 2. The Language Universe
+        function createUniverse() {
+            const container = document.getElementById('canvas-container');
+            data.forEach((item, i) => {
+                const el = document.createElement('div');
+                el.className = 'lang-particle';
+                el.innerText = item.l;
+                el.setAttribute('data-lang', item.l.toLowerCase());
+                container.appendChild(el);
+
+                // Orbiting Logic
+                const angle = (i / data.length) * Math.PI * 2;
+                const radius = 250 + Math.random() * 200;
+                
+                gsap.set(el, {
+                    x: window.innerWidth/2 + Math.cos(angle) * radius,
+                    y: window.innerHeight/2 + Math.sin(angle) * radius,
+                    z: Math.random() * -500
+                });
+
+                gsap.to(el, {
+                    rotationZ: 360,
+                    duration: 50 + Math.random() * 50,
+                    repeat: -1,
+                    ease: "none"
+                });
+            });
+        }
+
+        // 3. High Order Feature: Semantic Search Focus
+        function highlightLang(val) {
+            const particles = document.querySelectorAll('.lang-particle');
+            particles.forEach(p => {
+                if(val.length > 0 && p.getAttribute('data-lang').includes(val.toLowerCase())) {
+                    gsap.to(p, {
+                        scale: 2, color: '#00f2ff', z: 100, 
+                        opacity: 1, duration: 0.5, textShadow: "0 0 30px #00f2ff"
+                    });
+                } else {
+                    gsap.to(p, {
+                        scale: 1, color: 'white', z: 0, 
+                        opacity: 0.3, duration: 0.5
+                    });
+                }
+            });
+        }
+
+        createUniverse();
+        gsap.from("#title", { scale: 0.5, opacity: 0, duration: 3, ease: "expo.out" });
+    </script>
+</body>
+</html>
